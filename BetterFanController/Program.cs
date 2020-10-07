@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
-using System.Reflection.PortableExecutable;
 using PCIIdentificationResolver;
 using static System.Globalization.NumberStyles;
 
@@ -52,6 +50,11 @@ namespace BetterFanController
                     if (gpu.FanState != FanStates.Manual)
                     {
                         gpu.FanState = FanStates.Manual;
+                        //Other Options: Automatic and Maximum.
+                        //On some GPU's, setting it to Maximum will cause it to run them for a couple seconds
+                        //then default back to Automatic, but without it being functional. Ask me how I know.
+                        
+                        //We should add code so that on shutdown it sets the GPU's back to Automatic.
                     }
                     gpu.FanSpeed = FanSpeedCalc(gpu.Temperature);
                     Console.WriteLine("Set GPU {0} at {1}c to a PWM Speed of {2}", gpu.gpuName, gpu.Temperature, gpu.FanSpeed);
@@ -70,6 +73,7 @@ namespace BetterFanController
             return (byte) fanSpeed;
             //This calculates how fast to run the fan to try to hold at about halfway between the two values - essentially your target temperature.
             //That being said it's possible to go well above and below those values by simply running the GPU or not.
+            //Reason this is Static: We don't need more than 1, really.
         }
         
         
@@ -77,7 +81,7 @@ namespace BetterFanController
         {
             public ushort VendorID;
             public ushort DeviceID;
-            public string path = "";
+            public string path;
             public int gpuNumber;
             public string gpuName;
             public int Temperature
@@ -119,8 +123,9 @@ namespace BetterFanController
                 }
             }
             
-        } 
-        public class FanStates
+        }
+
+        private class FanStates
         {
             public const int Maximum = 0;
             public const int Manual = 1;

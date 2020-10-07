@@ -7,6 +7,8 @@
 - More Crash Resistant ❌
 - Be able to identify the GPU's in question by name ❌
 - Create Systemd service ❌
+- Refactor for Cleanlyness ❌
+- Enable configuring Minimum and Maximum Power Draw ❌
 - Dogfood! ✔️
 - Be a Hacktoberfest Project! ✔️
 
