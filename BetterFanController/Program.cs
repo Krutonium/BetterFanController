@@ -78,12 +78,20 @@ namespace BetterFanController
                     gpu.FanSpeed = FanSpeedCalc(HistoricValue);
                     Console.WriteLine("Set GPU {0} at {1}c (Average temp of {2}c) to a PWM Speed of {3}", 
                         gpu.gpuName, gpu.Temperature, HistoricValue, gpu.FanSpeed);
+                    
+                    //MAKE THIS CONFIGURABLE
+                    if (gpu.MaxPower != gpu.TargetPower)
+                    {
+                        gpu.TargetPower = gpu.MaxPower;
+                        Console.WriteLine("Adjusted GPU Power Targets to Maximum");
+                    }
                 }
 
                 System.Threading.Thread.Sleep(1000);
                 Console.Clear();
                 tempCurrentLocation += 1;
             }
+            // ReSharper disable once FunctionNeverReturns
         }
 
         private static byte FanSpeedCalc(int temperature)
@@ -138,6 +146,37 @@ namespace BetterFanController
                     return mode;
                 }
                 set { File.WriteAllText(path + "/device/hwmon/hwmon" + gpuNumber + "/pwm1", value.ToString()); }
+            }
+
+            public int MaxPower
+            {
+                get
+                {
+                    int v = int.Parse(File.ReadAllText(path + "/device/hwmon/hwmon" + gpuNumber + "/power1_cap_max"));
+                    return v;
+                }
+            }
+
+            public int MinimumPower
+            {
+                get
+                {
+                    int v = int.Parse(File.ReadAllText(path + "/device/hwmon/hwmon" + gpuNumber + "/power1_cap_min"));
+                    return v;
+                }
+            }
+
+            public int TargetPower
+            {
+                get
+                {
+                    int v = int.Parse(File.ReadAllText(path + "/device/hwmon/hwmon" + gpuNumber + "/power1_cap"));
+                    return v;
+                }
+                set
+                {
+                    File.WriteAllText(path + "/device/hwmon/hwmon" + gpuNumber + "/power1_cap", value.ToString());
+                }
             }
         }
 
