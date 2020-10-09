@@ -80,7 +80,8 @@ namespace BetterFanController
             var parentHwmonDirectory = Path.Combine(_devicePath, "hwmon");
             if(!Directory.Exists(parentHwmonDirectory))
             {
-                // No hwmon directory - this isn't a supported card. Should I throw an exception or something??
+                // No hwmon directory - this isn't a supported card.
+                Console.WriteLine($"No hwmon directory found in {_devicePath}!");
                 return;
             }
 
