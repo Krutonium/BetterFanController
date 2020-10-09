@@ -91,6 +91,7 @@ namespace BetterFanController
                 Console.Clear();
                 tempCurrentLocation += 1;
             }
+            // ReSharper disable once FunctionNeverReturns
         }
 
         private static byte FanSpeedCalc(int temperature)
