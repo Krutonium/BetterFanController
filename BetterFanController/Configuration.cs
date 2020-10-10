@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace BetterFanController
 {
-    public class Configuation
+    public class Configuration
     {
         public List<GpuConfigs> GpuConfigInfo = new List<GpuConfigs>(); 
     }
