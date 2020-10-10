@@ -1,0 +1,9 @@
+[Unit]
+Description=Better Fan Controller
+
+[Service]
+Type=notify
+ExecStart=/usr/sbin/BetterFanController
+
+[Install]
+WantedBy=multi-user.target
