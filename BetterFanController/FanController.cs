@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -15,11 +16,16 @@ namespace BetterFanController
         private ILogger<FanController> _logger;
         private IList<GPU> _gpus;
         int _longestName = 0;
-
+        Configuration _configuration = new Configuration();
         public FanController(ILogger<FanController> logger)
         {
             _logger = logger;
             _gpus = new List<GPU>();
+            if (File.Exists("/etc/BetterFanController.json"))
+            {
+                _configuration = JsonConvert.DeserializeObject<Configuration>(File.ReadAllText("/etc/BetterFanController.json"));
+            }
+            bool _configUpdated = false;
             
             foreach (var d in Directory.GetDirectories("/sys/class/drm/"))
             {
@@ -41,9 +47,29 @@ namespace BetterFanController
                             _longestName = gpu.DeviceName.Length;
                         }
                         _gpus.Add(gpu);
+                        bool contains = _configuration.GpuConfigInfo.Any(p => p.DeviceID == gpu.DeviceId);
+                        if (!contains)
+                        {
+                            GpuConfigs _tmpConfig = new GpuConfigs();
+                            _tmpConfig.NameOverride = gpu.DeviceName;
+                            _tmpConfig.TargetPower = gpu.TargetPower;
+                            _tmpConfig.DeviceID = gpu.DeviceId;
+                            _tmpConfig.MaxPowerDoNotChange = gpu.MaxPower;
+                            _tmpConfig.TargetPower = gpu.TargetPower;
+                            _configuration.GpuConfigInfo.Add(_tmpConfig);
+                            _configUpdated = true;
+                        }
                     }
                 }
             }
+            //Console.WriteLine("Indexed GPUs");
+            _logger.LogInformation("Indexed GPUs");
+            if (_configUpdated)
+            {
+                File.WriteAllText("/etc/BetterFanController.json",JsonConvert.SerializeObject(_configuration, Formatting.Indented));
+                _logger.LogInformation("Saved Config to /etc/BetterFanController.json");
+            }
+            _longestName = LongestName(_configuration);
         }
 
 
@@ -53,6 +79,7 @@ namespace BetterFanController
             
             //We now have all of our GPU's in a list of GPU's.
             int tempCurrentLocation = 0; //Keeps track of which value in the history to update this loop.
+            
             while (!stoppingToken.IsCancellationRequested)
             {
                 if (tempCurrentLocation == 5)
@@ -62,6 +89,7 @@ namespace BetterFanController
 
                 foreach (var gpu in _gpus)
                 {
+                    int configIndex = _configuration.GpuConfigInfo.FindIndex(c => c.DeviceID == gpu.DeviceId);
                     if (gpu.FanState != FanStates.Manual)
                     {
                         gpu.FanState = FanStates.Manual;
@@ -75,27 +103,31 @@ namespace BetterFanController
                     {
                         //Temperature is rising too quickly!!
                         Array.Fill(gpu.TemperatureHistory, gpu.Temperature);
-                       _logger.LogInformation("Adjusting for Temperature Spike...");
+                       _logger.LogInformation("Adjusting for Temperature Spike on GPU " + _configuration.GpuConfigInfo[configIndex].NameOverride);
                     }
                     else
                     {
                         gpu.TemperatureHistory[tempCurrentLocation] = gpu.Temperature;
                     }
-                    gpu.FanSpeed = FanSpeedCalc(historicValue);
-                    string loggableDeviceName = gpu.DeviceName.PadRight(_longestName, ' ');
+                    gpu.FanSpeed = FanSpeedCalc(historicValue, _configuration.GpuConfigInfo[configIndex].MinimumTemperature, 
+                        _configuration.GpuConfigInfo[configIndex].MaxTemperature);
+                    //string loggableDeviceName = gpu.DeviceName.PadRight(_longestName, ' ');
+                    string loggableDeviceName = _configuration.GpuConfigInfo[configIndex].NameOverride
+                        .PadRight(_longestName, ' ');
                     _logger.LogInformation($"Set GPU {loggableDeviceName} at {gpu.Temperature}c (Average temp of {historicValue}c) to a PWM Speed of {gpu.FanSpeed}");
                     
                     //MAKE THIS CONFIGURABLE
-                    if (gpu.MaxPower != gpu.TargetPower)
+                    if (gpu.TargetPower != _configuration.GpuConfigInfo[configIndex].TargetPower)
                     {
-                        gpu.TargetPower = gpu.MaxPower;
-                        _logger.LogInformation("Adjusted GPU Power Targets to Maximum");
+                        gpu.TargetPower = _configuration.GpuConfigInfo[configIndex].TargetPower;
+                        _logger.LogInformation("Adjusted GPU Power Target on GPU " + _configuration.GpuConfigInfo[configIndex].NameOverride);
                     }
                 }
 
                 await Task.Delay(1000);
-
                 tempCurrentLocation += 1;
+                _configuration = JsonConvert.DeserializeObject<Configuration>(File.ReadAllText("/etc/BetterFanController.json"));
+                _longestName = LongestName(_configuration);
             }
         }
 
@@ -111,15 +143,28 @@ namespace BetterFanController
             return base.StopAsync(cancellationToken);
         }
 
-        private byte FanSpeedCalc(int temperature)
+        private static byte FanSpeedCalc(int temperature, int minTemp = 30, int maxTemp = 50)
         {
-            const int inputRangeMin = 30; //Minimum Temperature
-            const int inputRangeMax = 50; //Maximum Temperature
-            const int inputRangeSpan = inputRangeMax - inputRangeMin;
+            int inputRangeMin = minTemp; //Minimum Temperature
+            int inputRangeMax = maxTemp; //Maximum Temperature
+            int inputRangeSpan = inputRangeMax - inputRangeMin;
             var fanSpeed = Math.Min(Math.Max(byte.MinValue, temperature - inputRangeMin) * byte.MaxValue / inputRangeSpan, byte.MaxValue);
             return (byte) fanSpeed;
             //This calculates how fast to run the fan to try to hold at about halfway between the two values - essentially your target temperature.
             //That being said it's possible to go well above and below those values by simply running the GPU or not.
+            //Reason this is Static: We don't need more than 1, really.
+        }
+        private static int LongestName(Configuration config)
+        {
+            int _longestName = 0;
+            foreach (var gpu in config.GpuConfigInfo)
+            {
+                if (_longestName < gpu.NameOverride.Length)
+                {
+                    _longestName = gpu.NameOverride.Length;
+                }
+            }
+            return _longestName;
         }
     }
 }
