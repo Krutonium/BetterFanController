@@ -12,6 +12,7 @@ namespace BetterFanController
         static void Main(string[] args)
         {
             List<GPU> Gpus = new List<GPU>();
+            int LongestName = 0;
             foreach (var d in Directory.GetDirectories("/sys/class/drm/"))
             {
                 var t = Path.GetFileName(d);
@@ -28,6 +29,10 @@ namespace BetterFanController
                     else
                     {
                         Console.WriteLine($"Found {gpu.VendorName} {gpu.DeviceName} at path {d}.");
+                        if (LongestName < gpu.DeviceName.Length)
+                        {
+                            LongestName = gpu.DeviceName.Length;
+                        }
                         Gpus.Add(gpu);
                     }
                 }
@@ -66,8 +71,9 @@ namespace BetterFanController
                         gpu.TemperatureHistory[tempCurrentLocation] = gpu.Temperature;
                     }
                     gpu.FanSpeed = FanSpeedCalc(HistoricValue);
+                    string LoggableDeviceName = gpu.DeviceName.PadRight(LongestName, ' ');
                     Console.WriteLine("Set GPU {0} at {1}c (Average temp of {2}c) to a PWM Speed of {3}", 
-                        gpu.DeviceName, gpu.Temperature, HistoricValue, gpu.FanSpeed);
+                        LoggableDeviceName, gpu.Temperature, HistoricValue, gpu.FanSpeed);
                     
                     //MAKE THIS CONFIGURABLE
                     if (gpu.MaxPower != gpu.TargetPower)
