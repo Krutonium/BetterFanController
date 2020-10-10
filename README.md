@@ -2,7 +2,7 @@
 
 ## Project Goals:
 - Control Multiple GPUs Fans ✔️
-- Make it configurable ❌
+- Make it configurable ✔️
 - Support Other Vendors ❌
 - More Crash Resistant ❌
 - Average GPU Temps for smoother changes ️✔️

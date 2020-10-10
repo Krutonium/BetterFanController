@@ -6,6 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
       <PackageReference Include="PCIIdentificationResolver" Version="2.19.322.5" />
     </ItemGroup>
 
