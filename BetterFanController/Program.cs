@@ -29,6 +29,7 @@ namespace BetterFanController
             })
             .ConfigureServices((hostContext, services) =>
             {
+                services.AddSingleton<IConfigurationProvider, ConfigurationProvider>();
                 services.AddHostedService<FanController>();
             })
             .UseSystemd();
