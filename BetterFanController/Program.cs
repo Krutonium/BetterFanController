@@ -10,6 +10,8 @@ using Newtonsoft.Json;
 using PCIIdentificationResolver;
 using static System.Globalization.NumberStyles;
 
+//remove unnecessary using (Refrence URL https://stackoverflow.com/questions/12075909/how-to-remove-unused-using-namespaces)
+
 namespace BetterFanController
 {
     public class Program
