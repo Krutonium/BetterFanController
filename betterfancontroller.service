@@ -2,8 +2,13 @@
 Description=Better Fan Controller
 
 [Service]
-Type=notify
+Type=simple
+WorkingDirectory=/tmp/
 ExecStart=/usr/sbin/BetterFanController
+Restart=always
+RestartSec=1
+User=root
+KillSignal=SIGINT
 
 [Install]
 WantedBy=multi-user.target
