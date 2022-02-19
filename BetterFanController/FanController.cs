@@ -105,16 +105,16 @@ namespace BetterFanController
                     string emoji = "";
                     if (gpu.FanSpeed < 140)
                     {
-                        emoji = "❄️ "; //For some reason this one needs a space after it.
+                        emoji = "🌡️";
                     } else if (gpu.FanSpeed is > 140 and < 190)
                     {
-                        emoji = "🥵";
+                        emoji = "🌡️🌡️";
                     } else if (gpu.FanSpeed is > 190 and < 220)
                     {
-                        emoji = "🌡️";
+                        emoji = "🌡🌡️🌡️";
                     } else if (gpu.FanSpeed > 220)
                     {
-                        emoji = "🔥";
+                        emoji = "🌡️🌡️🌡️🌡️🔥";
                     }
                     _logger.LogInformation($"{emoji} - Set GPU {loggableDeviceName} at {gpu.Temperature}c (Average temp of {historicValue}c) to a PWM Speed of {gpu.FanSpeed}");
                     //MAKE THIS CONFIGURABLE
