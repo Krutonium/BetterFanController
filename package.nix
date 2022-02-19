@@ -13,6 +13,7 @@ buildDotnetModule rec {
   dotnetFlags = [ "" ];
   executables = [ "BetterFanController" ];
   postInstall = ''
-    install betterfancontroller.service $out/etc/systemd/system/betterfancontroller.service
+    mkdir -p $out/etc/systemd/system/
+    install ./betterfancontroller.service $out/etc/systemd/system/betterfancontroller.service
   '';
 }
