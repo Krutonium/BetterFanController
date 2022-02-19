@@ -62,14 +62,14 @@ namespace BetterFanController
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Please note that the first 5 lines of this log are wrong while the application calibrates itself.");
+            _logger.LogInformation("Please note that the first 10 lines of this log are wrong while the application calibrates itself");
             
             //We now have all of our GPU's in a list of GPU's.
             int tempCurrentLocation = 0; //Keeps track of which value in the history to update this loop.
             
             while (!stoppingToken.IsCancellationRequested)
             {
-                if (tempCurrentLocation == 5)
+                if (tempCurrentLocation == 10)
                 {
                     tempCurrentLocation = 0;
                 }
@@ -85,12 +85,12 @@ namespace BetterFanController
                         //then default back to Automatic, but without it being functional. Ask me how I know.
                     }
 
-                    int historicValue = gpu.TemperatureHistory.Sum() / 5; //Gets Average Temp over the last 5 seconds
+                    int historicValue = gpu.TemperatureHistory.Sum() / 10; //Gets Average Temp over the last 10 seconds
                     if (gpu.Temperature - historicValue > 10) //If the difference between average and current is more than 10 degrees
                     {
                         //Temperature is rising too quickly!!
                         Array.Fill(gpu.TemperatureHistory, gpu.Temperature);
-                       _logger.LogInformation("Adjusting for Temperature Spike on GPU " + _configuration.GpuConfigInfo[configIndex].NameOverride);
+                       _logger.LogInformation($"Adjusting for Temperature Spike on GPU {_configuration.GpuConfigInfo[configIndex].NameOverride}");
                     }
                     else
                     {
@@ -101,13 +101,28 @@ namespace BetterFanController
                     
                     string loggableDeviceName = _configuration.GpuConfigInfo[configIndex].NameOverride
                         .PadRight(_configuration.LongestName, ' ');
-                    _logger.LogInformation($"Set GPU {loggableDeviceName} at {gpu.Temperature}c (Average temp of {historicValue}c) to a PWM Speed of {gpu.FanSpeed}");
-                    
+                    //Choose Emoji for Temperature based on gpu.Temperature, from min to max
+                    string emoji = "";
+                    if (gpu.FanSpeed < 140)
+                    {
+                        emoji = "❄️ "; //For some reason this one needs a space after it.
+                    } else if (gpu.FanSpeed is > 140 and < 190)
+                    {
+                        emoji = "🥵";
+                    } else if (gpu.FanSpeed is > 190 and < 220)
+                    {
+                        emoji = "🌡️";
+                    } else if (gpu.FanSpeed > 220)
+                    {
+                        emoji = "🔥";
+                    }
+                    _logger.LogInformation($"{emoji} - Set GPU {loggableDeviceName} at {gpu.Temperature}c (Average temp of {historicValue}c) to a PWM Speed of {gpu.FanSpeed}");
                     //MAKE THIS CONFIGURABLE
                     if (gpu.TargetPower != _configuration.GpuConfigInfo[configIndex].TargetPower)
                     {
                         gpu.TargetPower = _configuration.GpuConfigInfo[configIndex].TargetPower;
-                        _logger.LogInformation("Adjusted GPU Power Target on GPU " + _configuration.GpuConfigInfo[configIndex].NameOverride);
+                        _logger.LogInformation(
+                            $"Adjusted GPU Power Target on GPU {_configuration.GpuConfigInfo[configIndex].NameOverride}");
                     }
                 }
 

@@ -19,7 +19,7 @@ namespace BetterFanController
 
         public string DeviceName {get; set;}
 
-        public int[] TemperatureHistory {get; set;} = new int[5] { 1000, 1000, 1000, 1000, 1000 };
+        public int[] TemperatureHistory {get; set;} = new int[10] { 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000 };
 
         public int Temperature
         {
