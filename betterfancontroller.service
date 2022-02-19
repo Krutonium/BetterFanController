@@ -4,7 +4,7 @@ Description=Better Fan Controller
 [Service]
 Type=simple
 WorkingDirectory=/tmp/
-ExecStart=/usr/sbin/BetterFanController
+ExecStart=/usr/bin/BetterFanController
 Restart=always
 RestartSec=1
 User=root
