@@ -12,7 +12,4 @@ buildDotnetModule rec {
   dotnet-runtime = dotnetCorePackages.sdk_6_0;
   dotnetFlags = [ "" ];
   executables = [ "BetterFanController" ];
-  postInstall = ''
-    install -D ./betterfancontroller.service $out/etc/systemd/system/betterfancontroller.service
-  '';
 }
