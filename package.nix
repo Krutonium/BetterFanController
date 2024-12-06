@@ -8,8 +8,8 @@ buildDotnetModule rec {
 
   projectFile = "./BetterFanController.sln";
   nugetDeps = ./deps.nix;
-  dotnet-sdk = dotnetCorePackages.sdk_6_0;
-  dotnet-runtime = dotnetCorePackages.sdk_6_0;
+  dotnet-sdk = dotnetCorePackages.sdk_9_0;
+  dotnet-runtime = dotnetCorePackages.sdk_9_0;
   dotnetFlags = [ "" ];
   executables = [ "BetterFanController" ];
 }
